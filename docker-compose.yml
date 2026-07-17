@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  mongo-db:
+    image: mongo:7
+    container_name: notes-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: notes-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongo-db
+
+volumes:
+  mongo-data:
