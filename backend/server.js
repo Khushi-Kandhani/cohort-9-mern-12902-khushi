@@ -22,7 +22,7 @@ app.get("/health", (req, res) => {
 });
 
 // Routes will be mounted here as we build them
-// app.use("/api/auth", require("./src/routes/authRoutes"));
+app.use("/api/auth", require("./src/routes/authRoutes"));
 // app.use("/api/notes", require("./src/routes/noteRoutes"));
 
 // 404 + error handling — must be last
