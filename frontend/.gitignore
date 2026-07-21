@@ -26,3 +26,8 @@ dist-ssr
 # Environment variables
 .env
 .env.local
+
+# AI tool cache & workspace configs
+.kilo
+.kilocode
+.kilo/
