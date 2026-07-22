@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import NoteCard from '../components/NoteCard';
 import NoteModal from '../components/NoteModal';
@@ -24,6 +25,7 @@ export default function DashboardPage() {
       setNotes(Array.isArray(notesData) ? notesData : []);
     } catch (err) {
       console.error('Failed to fetch notes:', err);
+      toast.error('Failed to load notes');
     } finally {
       setLoading(false);
     }
@@ -68,18 +70,30 @@ export default function DashboardPage() {
   };
 
   const handleSaveNote = async (formData) => {
-    if (selectedNote) {
-      await updateNoteApi(selectedNote._id || selectedNote.id, formData);
-    } else {
-      await createNoteApi(formData);
+    try {
+      if (selectedNote) {
+        await updateNoteApi(selectedNote._id || selectedNote.id, formData);
+        toast.success('Note updated');
+      } else {
+        await createNoteApi(formData);
+        toast.success('Note created');
+      }
+      setIsNoteModalOpen(false);
+      await loadNotes();
+    } catch (err) {
+      toast.error(selectedNote ? 'Failed to update note' : 'Failed to create note');
     }
-    await loadNotes();
   };
 
   const handleDeleteNote = async () => {
-    if (selectedNote) {
+    if (!selectedNote) return;
+    try {
       await deleteNoteApi(selectedNote._id || selectedNote.id);
+      toast.success('Note deleted');
+      setIsDeleteModalOpen(false);
       await loadNotes();
+    } catch (err) {
+      toast.error('Failed to delete note');
     }
   };
 
