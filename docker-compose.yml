@@ -1,11 +1,8 @@
-
 services:
   mongo-db:
     image: mongo:7
     container_name: notes-mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -15,7 +12,6 @@ services:
       retries: 5
     networks:
       - notes-network
-
   backend:
     build: ./backend
     container_name: notes-backend
@@ -32,7 +28,6 @@ services:
         condition: service_healthy
     networks:
       - notes-network
-
   frontend:
     build: ./frontend
     container_name: notes-frontend
@@ -46,11 +41,9 @@ services:
       - backend
     networks:
       - notes-network
-
 volumes:
   mongo-data:
     driver: local
-
 networks:
   notes-network:
     driver: bridge
