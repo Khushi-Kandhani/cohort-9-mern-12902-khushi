@@ -1,15 +1,11 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
 const connectDB = require("./src/config/db");
 const httpLogger = require("./src/middleware/httpLogger");
 const { errorHandler, notFound } = require("./src/middleware/errorHandler");
 
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 // Core middleware
 app.use(cors());
@@ -30,6 +26,15 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+// Only start accepting requests once MongoDB is actually connected
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB:", err.message);
+    process.exit(1);
+  });
