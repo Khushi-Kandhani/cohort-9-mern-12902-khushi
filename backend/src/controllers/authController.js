@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
 const { AppError } = require("../middleware/errorHandler");
@@ -36,7 +37,8 @@ const login = asyncHandler(async (req, res) => {
   }
   const match = await user.comparePassword(password);
   if (!match) {
-    logger.warn({ email }, "Failed login attempt");
+    const emailHash = crypto.createHash("sha256").update(email).digest("hex").slice(0, 12);
+    logger.warn({ emailHash }, "Failed login attempt");
     throw new AppError("Invalid credentials", 401);
   }
   const token = signToken(user._id, user.tokenVersion);

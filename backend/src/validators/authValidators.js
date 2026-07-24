@@ -5,14 +5,13 @@ const signupValidator = [
     .trim()
     .notEmpty().withMessage("Name is required")
     .isLength({ min: 2, max: 50 }).withMessage("Name must be 2-50 characters"),
-
   body("email")
     .trim()
     .isEmail().withMessage("A valid email is required")
     .normalizeEmail(),
-
   body("password")
-    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+    .matches(/\S/).withMessage("Password cannot be only whitespace"),
 ];
 
 const loginValidator = [
