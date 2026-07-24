@@ -6,6 +6,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }) {
   const [localOpen, setLocalOpen] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const isClosingRef = useRef(false);
+  const cancelButtonRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -24,6 +25,21 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }) {
       return () => clearTimeout(timer);
     }
   }, [isOpen, localOpen]);
+
+  // Focus the Cancel button when the modal opens, and allow Escape to close it.
+  useEffect(() => {
+    if (isOpen) {
+      const focusTimer = setTimeout(() => cancelButtonRef.current?.focus(), 0);
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') onClose();
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(focusTimer);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
 
   if (!localOpen) return null;
 
@@ -44,13 +60,14 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }) {
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       style={{ backgroundColor: 'rgba(2, 6, 23, 0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-      aria-hidden="true"
+      onClick={onClose}
     >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-title"
         aria-describedby="delete-desc"
+        onClick={(e) => e.stopPropagation()}
         className={`w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-2xl transition-all duration-220 ease-out ${
           isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-3 scale-[0.97]'
         }`}
@@ -71,6 +88,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }) {
         <div className="flex items-center justify-center gap-3 pt-2">
           <button
             type="button"
+            ref={cancelButtonRef}
             onClick={onClose}
             disabled={isDeleting}
             className="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
