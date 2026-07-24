@@ -11,9 +11,14 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-
     if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("Corrupted user data in localStorage, clearing session:", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
     setIsLoading(false);
   }, []);
@@ -21,11 +26,9 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     const res = await axiosClient.post("/auth/login", { email, password });
     const { token, user } = res.data.data;
-
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
     setUser(user);
-
     return user;
   }
 
@@ -34,14 +37,19 @@ export function AuthProvider({ children }) {
     return res.data.data;
   }
 
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+  async function logout() {
+    try {
+      await axiosClient.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout request failed, clearing local session anyway:", err);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+    }
   }
 
   const value = { user, isLoading, login, signup, logout };
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
