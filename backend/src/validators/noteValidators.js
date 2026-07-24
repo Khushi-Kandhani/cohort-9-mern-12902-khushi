@@ -27,10 +27,26 @@ const updateNoteValidator = [
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
+  body().custom((value, { req }) => {
+    const allowedFields = ["title", "content", "tags"];
+    const hasAtLeastOneField = allowedFields.some(
+      (field) => req.body[field] !== undefined
+    );
+    if (!hasAtLeastOneField) {
+      throw new Error(
+        "Request body must include at least one of: title, content, tags"
+      );
+    }
+    return true;
+  }),
 ];
 
 const noteIdValidator = [
   param("id").isMongoId().withMessage("Invalid note ID"),
 ];
 
-module.exports = { createNoteValidator, updateNoteValidator, noteIdValidator };
+module.exports = {
+  createNoteValidator,
+  updateNoteValidator,
+  noteIdValidator,
+};
