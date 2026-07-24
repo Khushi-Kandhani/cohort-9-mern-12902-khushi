@@ -7,6 +7,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
   const [localOpen, setLocalOpen] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const isClosingRef = useRef(false);
+  const titleInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,6 +27,8 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
     }
   }, [isOpen, localOpen]);
 
+  // Sync form data whenever initialData changes, regardless of open/closed state.
+  // Fixes stale data leaking between Edit -> Create flows.
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -33,10 +36,25 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
         content: initialData.content || initialData.description || '',
         category: initialData.category || '',
       });
-    } else if (!isOpen) {
+    } else {
       setFormData({ title: '', content: '', category: '' });
     }
   }, [initialData, isOpen]);
+
+  // Focus the first field when the modal opens, and allow Escape to close it.
+  useEffect(() => {
+    if (isOpen) {
+      const focusTimer = setTimeout(() => titleInputRef.current?.focus(), 0);
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') onClose();
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(focusTimer);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
 
   if (!localOpen) return null;
 
@@ -59,12 +77,13 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       style={{ backgroundColor: 'rgba(2, 6, 23, 0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-      aria-hidden="true"
+      onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={initialData ? 'Edit Note' : 'Create New Note'}
+        onClick={(e) => e.stopPropagation()}
         className={`w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl transition-all duration-220 ease-out ${
           isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-3 scale-[0.97]'
         }`}
@@ -89,6 +108,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
             </label>
             <input
               id="note-title"
+              ref={titleInputRef}
               type="text"
               maxLength={120}
               required
