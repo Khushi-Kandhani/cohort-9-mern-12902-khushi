@@ -37,7 +37,11 @@ const login = asyncHandler(async (req, res) => {
   }
   const match = await user.comparePassword(password);
   if (!match) {
-    const emailHash = crypto.createHash("sha256").update(email).digest("hex").slice(0, 12);
+    const emailHash = crypto
+      .createHmac("sha256", process.env.LOG_HMAC_KEY)
+      .update(email)
+      .digest("hex")
+      .slice(0, 12);
     logger.warn({ emailHash }, "Failed login attempt");
     throw new AppError("Invalid credentials", 401);
   }
