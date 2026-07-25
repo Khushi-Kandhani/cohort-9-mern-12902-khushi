@@ -63,7 +63,6 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
     setIsSubmitting(true);
     try {
       await onSave(formData);
-      onClose();
     } catch (err) {
       console.error('Failed to save note:', err);
     } finally {
