@@ -23,6 +23,20 @@ export function AuthProvider({ children }) {
     setIsLoading(false);
   }, []);
 
+  // axiosClient dispatches this on a 401 from a non-auth endpoint (expired/invalid
+  // token). localStorage is already cleared there — this makes sure React's own
+  // auth state (and anything reading it, like ProtectedRoute) reflects that too.
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setUser(null);
+    };
+
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () => {
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+    };
+  }, []);
+
   async function login(email, password) {
     const res = await axiosClient.post("/auth/login", { email, password });
     const { token, user } = res.data.data;
