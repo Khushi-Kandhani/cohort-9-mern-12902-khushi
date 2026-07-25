@@ -1,4 +1,11 @@
 import { Edit3, Trash2, Tag, Calendar } from 'lucide-react';
+import DOMPurify from 'dompurify';
+
+// only allow basic formatting tags a note editor would produce - nothing else
+const SANITIZE_OPTIONS = {
+  ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'b', 'i'],
+  ALLOWED_ATTR: [],
+};
 
 export default function NoteCard({ note, onEdit, onDelete, className }) {
   const formatDate = (dateString) => {
@@ -9,6 +16,9 @@ export default function NoteCard({ note, onEdit, onDelete, className }) {
       year: 'numeric',
     });
   };
+
+  const rawContent = note.content || note.description || '';
+  const cleanHtml = DOMPurify.sanitize(rawContent, SANITIZE_OPTIONS);
 
   return (
     <article
@@ -31,9 +41,10 @@ export default function NoteCard({ note, onEdit, onDelete, className }) {
           )}
         </div>
 
-        <p className="text-slate-300 text-sm leading-relaxed line-clamp-4 whitespace-pre-line">
-          {note.content || note.description}
-        </p>
+        <div
+          className="text-slate-300 text-sm leading-relaxed line-clamp-4 prose prose-invert prose-sm max-w-none [&_p]:my-0 [&_ul]:my-0 [&_ol]:my-0"
+          dangerouslySetInnerHTML={{ __html: cleanHtml }}
+        />
       </div>
 
       <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
@@ -41,7 +52,6 @@ export default function NoteCard({ note, onEdit, onDelete, className }) {
           <Calendar className="w-3.5 h-3.5 text-slate-500" aria-hidden="true" />
           <span>{formatDate(note.updatedAt || note.createdAt)}</span>
         </div>
-
         <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition">
           <button
             onClick={() => onEdit(note)}

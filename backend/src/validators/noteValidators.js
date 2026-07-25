@@ -1,5 +1,12 @@
 const { body, param } = require("express-validator");
 
+// Tiptap sends "<p></p>" for an empty editor, which passes notEmpty() as a string
+// but is actually blank content - strip tags before checking
+function hasRealContent(value) {
+  const stripped = value.replace(/<[^>]*>/g, "").trim();
+  return stripped.length > 0;
+}
+
 const createNoteValidator = [
   body("title")
     .trim()
@@ -7,7 +14,9 @@ const createNoteValidator = [
     .isLength({ max: 100 }).withMessage("Title cannot exceed 100 characters"),
   body("content")
     .trim()
-    .notEmpty().withMessage("Content is required"),
+    .notEmpty().withMessage("Content is required")
+    .custom((value) => hasRealContent(value))
+    .withMessage("Content cannot be empty"),
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
@@ -23,19 +32,15 @@ const updateNoteValidator = [
   body("content")
     .optional()
     .trim()
-    .notEmpty().withMessage("Content cannot be empty"),
+    .notEmpty().withMessage("Content cannot be empty")
+    .custom((value) => hasRealContent(value))
+    .withMessage("Content cannot be empty"),
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
-  body().custom((value, { req }) => {
-    const allowedFields = ["title", "content", "tags"];
-    const hasAtLeastOneField = allowedFields.some(
-      (field) => req.body[field] !== undefined
-    );
-    if (!hasAtLeastOneField) {
-      throw new Error(
-        "Request body must include at least one of: title, content, tags"
-      );
+  body().custom((value) => {
+    if (!value.title && !value.content && !value.tags) {
+      throw new Error("At least one field (title, content, or tags) must be provided");
     }
     return true;
   }),
@@ -45,8 +50,4 @@ const noteIdValidator = [
   param("id").isMongoId().withMessage("Invalid note ID"),
 ];
 
-module.exports = {
-  createNoteValidator,
-  updateNoteValidator,
-  noteIdValidator,
-};
+module.exports = { createNoteValidator, updateNoteValidator, noteIdValidator };

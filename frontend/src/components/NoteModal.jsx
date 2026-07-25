@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Loader2, Save } from 'lucide-react';
+import RichTextEditor from './RichTextEditor';
 
 export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
   const [formData, setFormData] = useState({ title: '', content: '', category: '' });
@@ -57,6 +58,10 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
   }, [isOpen, onClose]);
 
   if (!localOpen) return null;
+
+  const handleContentChange = (html) => {
+    setFormData((prev) => ({ ...prev, content: html }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -146,20 +151,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
             <label htmlFor="note-content" className="text-xs font-bold uppercase tracking-widest text-slate-100">
               Content
             </label>
-            <textarea
-              id="note-content"
-              rows={5}
-              required
-              maxLength={800}
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              placeholder="Write your note here..."
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-400 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none"
-              aria-describedby="content-counter"
-            />
-            <span id="content-counter" className="text-[11px] font-medium text-slate-400">
-              {formData.content.length}/800
-            </span>
+            <RichTextEditor content={formData.content} onChange={handleContentChange} />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-700/80">
