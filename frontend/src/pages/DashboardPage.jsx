@@ -82,6 +82,7 @@ export default function DashboardPage() {
       await loadNotes();
     } catch (err) {
       toast.error(selectedNote ? 'Failed to update note' : 'Failed to create note');
+      throw err;
     }
   };
 
