@@ -32,7 +32,7 @@ A full-stack MERN notes application built as a Cohort 9 assignment. Users can re
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Node.js 18+ (for local development without Docker)
+- Node.js 20.19+ (for local development without Docker)
 
 ## Getting Started (Docker-based)
 
