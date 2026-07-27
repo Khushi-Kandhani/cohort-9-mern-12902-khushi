@@ -1,6 +1,6 @@
-const { body } = require("express-validator");
+import { body } from "express-validator";
 
-const signupValidator = [
+export const signupValidator = [
   body("name")
     .trim()
     .notEmpty().withMessage("Name is required")
@@ -14,9 +14,7 @@ const signupValidator = [
     .matches(/\S/).withMessage("Password cannot be only whitespace"),
 ];
 
-const loginValidator = [
+export const loginValidator = [
   body("email").trim().isEmail().withMessage("A valid email is required").normalizeEmail(),
   body("password").notEmpty().withMessage("Password is required"),
 ];
-
-module.exports = { signupValidator, loginValidator };

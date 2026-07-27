@@ -1,25 +1,24 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const {
+import {
   createNote,
   getNotes,
   getNoteById,
   updateNote,
   deleteNote,
-} = require("../controllers/noteController");
+} from "../controllers/noteController";
 
-const {
+import {
   createNoteValidator,
   updateNoteValidator,
   noteIdValidator,
-} = require("../validators/noteValidators");
+} from "../validators/noteValidators";
 
-const validate = require("../middleware/validate");
-const authMiddleware = require("../middleware/auth");
+import validate from "../middleware/validate";
+import authMiddleware from "../middleware/auth";
 
-// every route here requires a valid JWT
-router.use(authMiddleware);
+router.use(authMiddleware as express.RequestHandler);
 
 router.post("/", createNoteValidator, validate, createNote);
 router.get("/", getNotes);
@@ -27,4 +26,4 @@ router.get("/:id", noteIdValidator, validate, getNoteById);
 router.put("/:id", updateNoteValidator, validate, updateNote);
 router.delete("/:id", noteIdValidator, validate, deleteNote);
 
-module.exports = router;
+export default router;

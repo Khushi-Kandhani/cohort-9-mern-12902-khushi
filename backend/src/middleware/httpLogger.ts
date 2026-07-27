@@ -1,5 +1,5 @@
-const pinoHttp = require("pino-http");
-const logger = require("./logger");
+import pinoHttp from "pino-http";
+import logger from "./logger";
 
 const httpLogger = pinoHttp({
   logger,
@@ -10,4 +10,4 @@ const httpLogger = pinoHttp({
   },
 });
 
-module.exports = httpLogger;
+export default httpLogger;

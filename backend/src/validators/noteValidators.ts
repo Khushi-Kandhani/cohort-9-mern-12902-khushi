@@ -1,8 +1,9 @@
-const { body, param } = require("express-validator");
+import { body, param } from "express-validator";
+
 // Tiptap sends "<p></p>" for an empty editor, which passes notEmpty() as a string
 // but is actually blank content - strip tags AND common whitespace entities
 // (e.g. "&nbsp;", which Tiptap sometimes inserts) before checking.
-function hasRealContent(value) {
+function hasRealContent(value: string): boolean {
   if (typeof value !== "string") return false;
   const stripped = value
     .replace(/<[^>]*>/g, "")
@@ -13,7 +14,7 @@ function hasRealContent(value) {
   return stripped.length > 0;
 }
 
-const createNoteValidator = [
+export const createNoteValidator = [
   body("title")
     .trim()
     .notEmpty().withMessage("Title is required")
@@ -21,14 +22,19 @@ const createNoteValidator = [
   body("content")
     .trim()
     .notEmpty().withMessage("Content is required")
+    .isLength({ max: 50000 }).withMessage("Content cannot exceed 50,000 characters")
     .custom((value) => hasRealContent(value))
     .withMessage("Content cannot be empty"),
+  body("category")
+    .optional()
+    .trim()
+    .isLength({ max: 40 }).withMessage("Category cannot exceed 40 characters"),
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
 ];
 
-const updateNoteValidator = [
+export const updateNoteValidator = [
   param("id").isMongoId().withMessage("Invalid note ID"),
   body("title")
     .optional()
@@ -39,8 +45,13 @@ const updateNoteValidator = [
     .optional()
     .trim()
     .notEmpty().withMessage("Content cannot be empty")
+    .isLength({ max: 50000 }).withMessage("Content cannot exceed 50,000 characters")
     .custom((value) => hasRealContent(value))
     .withMessage("Content cannot be empty"),
+  body("category")
+    .optional()
+    .trim()
+    .isLength({ max: 40 }).withMessage("Category cannot exceed 40 characters"),
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
@@ -58,8 +69,6 @@ const updateNoteValidator = [
   }),
 ];
 
-const noteIdValidator = [
+export const noteIdValidator = [
   param("id").isMongoId().withMessage("Invalid note ID"),
 ];
-
-module.exports = { createNoteValidator, updateNoteValidator, noteIdValidator };

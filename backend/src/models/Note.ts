@@ -1,6 +1,13 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema, Document } from "mongoose";
 
-const noteSchema = new mongoose.Schema(
+interface INote extends Document {
+  user: mongoose.Types.ObjectId;
+  title: string;
+  content: string;
+  tags: string[];
+}
+
+const noteSchema = new Schema<INote>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -33,4 +40,5 @@ const noteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Note", noteSchema);
+const Note = mongoose.model<INote>("Note", noteSchema);
+export default Note;

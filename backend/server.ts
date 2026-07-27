@@ -1,9 +1,11 @@
-require("dotenv").config();
+import "dotenv/config";
+import app from "./src/app";
+import connectDB from "./src/config/db";
 
 // Refuse to boot if required secrets are missing or still set to the
 // template's placeholder values. Fail fast at startup instead of only
 // crashing the first time someone hits an auth-related route.
-const REQUIRED_SECRETS = {
+const REQUIRED_SECRETS: Record<string, string> = {
   JWT_SECRET: "your_jwt_secret_here",
   LOG_HMAC_KEY: "your_log_hmac_key_here",
 };
@@ -22,18 +24,15 @@ for (const [key, placeholder] of Object.entries(REQUIRED_SECRETS)) {
   }
 }
 
-const app = require("./src/app");
-const connectDB = require("./src/config/db");
-
 const PORT = process.env.PORT || 5000;
-// Only start accepting requests once MongoDB is actually connected
+
 connectDB()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
-  .catch((err) => {
+  .catch((err: Error) => {
     console.error("Failed to connect to MongoDB:", err.message);
     process.exit(1);
   });
