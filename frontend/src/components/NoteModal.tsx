@@ -2,13 +2,19 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Loader2, Save } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 
-export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
-  const [formData, setFormData] = useState({ title: '', content: '', category: '' });
+export interface NoteFormData {
+  title: string;
+  content: string;
+  category: string;
+}
+
+export default function NoteModal({ isOpen, onClose, onSave, initialData }: { isOpen: boolean; onClose: () => void; onSave: (data: NoteFormData) => Promise<void>; initialData: any }) {
+  const [formData, setFormData] = useState<NoteFormData>({ title: '', content: '', category: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localOpen, setLocalOpen] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const isClosingRef = useRef(false);
-  const titleInputRef = useRef(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,7 +52,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
   useEffect(() => {
     if (isOpen) {
       const focusTimer = setTimeout(() => titleInputRef.current?.focus(), 0);
-      const handleKeyDown = (e) => {
+      const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') onClose();
       };
       document.addEventListener('keydown', handleKeyDown);
@@ -59,11 +65,11 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
 
   if (!localOpen) return null;
 
-  const handleContentChange = (html) => {
+  const handleContentChange = (html: string) => {
     setFormData((prev) => ({ ...prev, content: html }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {

@@ -1,45 +1,59 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Lock, Eye, EyeOff, Loader2, StickyNote } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, Loader2, StickyNote } from "lucide-react";
 
-export default function LoginPage() {
-  const { login } = useAuth();
+export default function SignupPage() {
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      navigate("/dashboard", { replace: true });
-    } catch (err) {
-      const message =
-        err.response?.data?.message || "Something went wrong. Please try again.";
-      setError(message);
+      await signup(name, email, password);
+      navigate("/login");
+    } catch (err: any) {
+      const data = err.response?.data;
+
+      if (data?.errors) {
+        const errorsByField: Record<string, string> = {};
+        data.errors.forEach((e: any) => {
+          errorsByField[e.field] = e.message;
+        });
+        setFieldErrors(errorsByField);
+      } else {
+        setError(data?.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  const inputClassName =
+    "w-full rounded-xl border border-stone-200 bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-stone-400 focus:border-accent-400 focus:ring-4 focus:ring-accent-100";
+
   return (
     <div className="flex min-h-screen">
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-accent-500 via-accent-600 to-stone-750 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.1),_transparent_50%)]" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -right-32 w-[28rem] h-[28rem] bg-accent-400/20 rounded-full blur-3xl" />
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-stone-750 via-stone-800 to-stone-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.08),_transparent_50%)]" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/2 -left-32 w-[28rem] h-[28rem] bg-white/5 rounded-full blur-3xl" />
 
         <div className="relative z-10 flex flex-col justify-between w-full p-16">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
               <StickyNote className="w-5 h-5 text-white" strokeWidth={1.5} />
             </div>
             <span className="font-serif text-xl text-white">Notes</span>
@@ -47,16 +61,16 @@ export default function LoginPage() {
 
           <div className="max-w-md">
             <h1 className="font-serif text-5xl text-white leading-tight">
-              Capture your thoughts, organize your life
+              Start capturing what matters
             </h1>
-            <p className="mt-6 text-lg text-white/75 leading-relaxed">
-              A minimal, focused space for your ideas. Write, reflect, and stay
-              productive with a notes experience designed for clarity.
+            <p className="mt-6 text-lg text-white/70 leading-relaxed">
+              Join thousands of thinkers, writers, and creators who use Notes to
+              clarify their mind and keep their best ideas within reach.
             </p>
           </div>
 
-          <div className="text-sm text-white/50">
-            Built with care for people who think deeply.
+          <div className="text-sm text-white/40">
+            Free forever. No credit card required.
           </div>
         </div>
       </div>
@@ -71,9 +85,11 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8">
-            <h2 className="font-serif text-3xl text-stone-800">Welcome back</h2>
+            <h2 className="font-serif text-3xl text-stone-800">
+              Create your account
+            </h2>
             <p className="mt-2 text-sm text-stone-500">
-              Log in to continue to your notes
+              Start taking notes in seconds
             </p>
           </div>
 
@@ -84,6 +100,32 @@ export default function LoginPage() {
                 <span>{error}</span>
               </div>
             )}
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-stone-700"
+              >
+                Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-stone-400">
+                  <User className="w-4 h-4" strokeWidth={1.5} />
+                </div>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={inputClassName}
+                  placeholder="Your name"
+                />
+              </div>
+              {fieldErrors.name && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.name}</p>
+              )}
+            </div>
 
             <div className="space-y-1.5">
               <label
@@ -102,10 +144,13 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-stone-200 bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-stone-400 focus:border-accent-400 focus:ring-4 focus:ring-accent-100"
+                  className={inputClassName}
                   placeholder="you@example.com"
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -125,8 +170,8 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-stone-200 bg-white pl-10 pr-11 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-stone-400 focus:border-accent-400 focus:ring-4 focus:ring-accent-100"
-                  placeholder="••••••••"
+                  className={inputClassName}
+                  placeholder="At least 6 characters"
                 />
                 <button
                   type="button"
@@ -141,31 +186,36 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="mt-1 text-xs text-red-600">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-accent-500 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-accent-600 hover:shadow-md hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-stone-800 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-stone-700 hover:shadow-md hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Logging in...
+                  Creating account...
                 </>
               ) : (
-                "Log in"
+                "Sign up"
               )}
             </button>
           </form>
 
           <p className="mt-8 text-center text-sm text-stone-500">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              to="/signup"
+              to="/login"
               className="font-medium text-accent-600 hover:text-accent-700 transition-colors"
             >
-              Sign up
+              Log in
             </Link>
           </p>
         </div>

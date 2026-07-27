@@ -3,20 +3,32 @@ import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import NoteCard from '../components/NoteCard';
 import NoteModal from '../components/NoteModal';
+import type { NoteFormData } from '../components/NoteModal';
 import DeleteModal from '../components/DeleteModal';
 import { fetchNotesApi, createNoteApi, updateNoteApi, deleteNoteApi } from '../api/notesApi';
 import { Plus, Search, Notebook, Loader2, LayoutGrid, List } from 'lucide-react';
 
+interface Note {
+  title?: string;
+  content?: string;
+  description?: string;
+  category?: string;
+  updatedAt?: string;
+  createdAt?: string;
+  _id?: string;
+  id?: string;
+}
+
 export default function DashboardPage() {
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid');
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
   const loadNotes = async () => {
     try {
@@ -36,7 +48,7 @@ export default function DashboardPage() {
   }, []);
 
   const categories = useMemo(() => {
-    const cats = notes.map(n => n.category).filter(Boolean);
+    const cats = notes.map(n => n.category).filter((c): c is string => typeof c === 'string');
     return Array.from(new Set(cats));
   }, [notes]);
 
@@ -59,23 +71,23 @@ export default function DashboardPage() {
     setIsNoteModalOpen(true);
   };
 
-  const handleOpenEditModal = (note) => {
+  const handleOpenEditModal = (note: Note) => {
     setSelectedNote(note);
     setIsNoteModalOpen(true);
   };
 
-  const handleOpenDeleteModal = (note) => {
+  const handleOpenDeleteModal = (note: Note) => {
     setSelectedNote(note);
     setIsDeleteModalOpen(true);
   };
 
-  const handleSaveNote = async (formData) => {
+  const handleSaveNote = async (formData: NoteFormData) => {
     try {
       if (selectedNote) {
-        await updateNoteApi(selectedNote._id || selectedNote.id, formData);
+        await updateNoteApi(selectedNote._id || selectedNote.id || '', formData as Record<string, unknown>);
         toast.success('Note updated');
       } else {
-        await createNoteApi(formData);
+        await createNoteApi(formData as Record<string, unknown>);
         toast.success('Note created');
       }
       setIsNoteModalOpen(false);
@@ -89,7 +101,7 @@ export default function DashboardPage() {
   const handleDeleteNote = async () => {
     if (!selectedNote) return;
     try {
-      await deleteNoteApi(selectedNote._id || selectedNote.id);
+      await deleteNoteApi(selectedNote._id || selectedNote.id || '');
       toast.success('Note deleted');
       setIsDeleteModalOpen(false);
       await loadNotes();

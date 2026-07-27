@@ -1,12 +1,12 @@
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
-export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }) {
+export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }: { isOpen: boolean; onClose: () => void; onConfirm: () => Promise<void>; noteTitle: string }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [localOpen, setLocalOpen] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(false);
   const isClosingRef = useRef(false);
-  const cancelButtonRef = useRef(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,7 +30,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }) {
   useEffect(() => {
     if (isOpen) {
       const focusTimer = setTimeout(() => cancelButtonRef.current?.focus(), 0);
-      const handleKeyDown = (e) => {
+      const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') onClose();
       };
       document.addEventListener('keydown', handleKeyDown);

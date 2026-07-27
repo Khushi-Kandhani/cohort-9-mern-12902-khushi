@@ -1,11 +1,24 @@
-import { useState, useEffect } from "react";
-import { createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import axiosClient from "../api/axiosClient";
 
-const AuthContext = createContext(null);
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<User>;
+  signup: (name: string, email: string, password: string) => Promise<any>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,14 +43,13 @@ export function AuthProvider({ children }) {
     const handleSessionExpired = () => {
       setUser(null);
     };
-
     window.addEventListener("auth:session-expired", handleSessionExpired);
     return () => {
       window.removeEventListener("auth:session-expired", handleSessionExpired);
     };
   }, []);
 
-  async function login(email, password) {
+  async function login(email: string, password: string) {
     const res = await axiosClient.post("/auth/login", { email, password });
     const { token, user } = res.data.data;
     localStorage.setItem("token", token);
@@ -46,7 +58,7 @@ export function AuthProvider({ children }) {
     return user;
   }
 
-  async function signup(name, email, password) {
+  async function signup(name: string, email: string, password: string) {
     const res = await axiosClient.post("/auth/signup", { name, email, password });
     return res.data.data;
   }

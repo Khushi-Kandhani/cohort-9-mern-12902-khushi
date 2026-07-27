@@ -152,7 +152,6 @@ cohort-9-mern-12902-khushi/
 
 ## Known Limitations
 
-- No TypeScript — the project uses plain JavaScript throughout.
 - No frontend test suite yet.
 - Local development only — no deployment configuration is in place.
 - The Docker setup is intended for local development and has not been tested for production use.

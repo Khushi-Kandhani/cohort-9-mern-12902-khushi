@@ -32,6 +32,11 @@ export const createNoteValidator = [
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
+  body("tags.*")
+    .optional()
+    .isString().withMessage("Each tag must be a string")
+    .trim()
+    .notEmpty().withMessage("Tag cannot be empty"),
 ];
 
 export const updateNoteValidator = [
@@ -55,6 +60,11 @@ export const updateNoteValidator = [
   body("tags")
     .optional()
     .isArray().withMessage("Tags must be an array"),
+  body("tags.*")
+    .optional()
+    .isString().withMessage("Each tag must be a string")
+    .trim()
+    .notEmpty().withMessage("Tag cannot be empty"),
   body().custom((value) => {
     const editableFields = ["title", "content", "category", "tags"];
     const hasAtLeastOneField = editableFields.some((field) =>

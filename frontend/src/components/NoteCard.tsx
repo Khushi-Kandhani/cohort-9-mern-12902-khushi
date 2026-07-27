@@ -7,8 +7,19 @@ const SANITIZE_OPTIONS = {
   ALLOWED_ATTR: [],
 };
 
-export default function NoteCard({ note, onEdit, onDelete, className }) {
-  const formatDate = (dateString) => {
+interface Note {
+  title?: string;
+  content?: string;
+  description?: string;
+  category?: string;
+  updatedAt?: string;
+  createdAt?: string;
+  _id?: string;
+  id?: string;
+}
+
+export default function NoteCard({ note, onEdit, onDelete, className }: { note: Note; onEdit: (note: Note) => void; onDelete: (note: Note) => void; className?: string }) {
+  const formatDate = (dateString: string) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -50,7 +61,7 @@ export default function NoteCard({ note, onEdit, onDelete, className }) {
       <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
         <div className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-slate-500" aria-hidden="true" />
-          <span>{formatDate(note.updatedAt || note.createdAt)}</span>
+          <span>{formatDate(note.updatedAt || note.createdAt || '')}</span>
         </div>
         <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition">
           <button
