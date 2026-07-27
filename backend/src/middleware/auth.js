@@ -11,9 +11,16 @@ async function authMiddleware(req, res, next) {
     return res.status(401).json({ success: false, message: "Authentication required" });
   }
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    logger.warn({ err: err.message }, "JWT verification failed");
+    res.set("WWW-Authenticate", "Bearer");
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+  }
 
+  try {
     const user = await User.findById(decoded.id).select("tokenVersion");
     if (!user || user.tokenVersion !== decoded.tokenVersion) {
       res.set("WWW-Authenticate", "Bearer");
@@ -23,9 +30,7 @@ async function authMiddleware(req, res, next) {
     req.user = { id: decoded.id };
     next();
   } catch (err) {
-    logger.warn({ err: err.message }, "JWT verification failed");
-    res.set("WWW-Authenticate", "Bearer");
-    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+    next(err);
   }
 }
 
