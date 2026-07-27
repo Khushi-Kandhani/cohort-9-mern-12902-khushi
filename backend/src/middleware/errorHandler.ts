@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from "express";
 import logger from "./logger";
 
 class AppError extends Error {
@@ -11,9 +12,9 @@ class AppError extends Error {
   }
 }
 
-const errorHandler = (err: Error, req: any, res: any, next: any) => {
-  const statusCode = (err as any).statusCode || 500;
-  const message = (err as any).isOperational ? err.message : "Internal Server Error";
+const errorHandler = (err: AppError | Error, req: Request, res: Response, next: NextFunction) => {
+  const statusCode = err instanceof AppError ? err.statusCode : 500;
+  const message = err instanceof AppError && err.isOperational ? err.message : "Internal Server Error";
 
   logger.error({ err, path: req.path, method: req.method }, err.message);
 
@@ -23,7 +24,7 @@ const errorHandler = (err: Error, req: any, res: any, next: any) => {
   });
 };
 
-const notFound = (req: any, res: any, next: any) => {
+const notFound = (req: Request, res: Response, next: NextFunction) => {
   const error = new AppError(`Route not found: ${req.originalUrl}`, 404);
   next(error);
 };

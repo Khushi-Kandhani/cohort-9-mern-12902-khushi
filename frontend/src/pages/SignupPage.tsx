@@ -3,6 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { User, Mail, Lock, Eye, EyeOff, Loader2, StickyNote } from "lucide-react";
 
+function isFieldError(
+  error: unknown
+): error is { field: string; message: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "field" in error &&
+    "message" in error
+  );
+}
+
+function isErrorWithResponse(
+  error: unknown
+): error is { response?: { data?: { errors?: unknown[]; message?: string } } } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
 export default function SignupPage() {
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -24,13 +41,15 @@ export default function SignupPage() {
     try {
       await signup(name, email, password);
       navigate("/login");
-    } catch (err: any) {
-      const data = err.response?.data;
+    } catch (err: unknown) {
+      const data = isErrorWithResponse(err) ? err.response?.data : undefined;
 
-      if (data?.errors) {
+      if (data?.errors && Array.isArray(data.errors)) {
         const errorsByField: Record<string, string> = {};
-        data.errors.forEach((e: any) => {
-          errorsByField[e.field] = e.message;
+        data.errors.forEach((e) => {
+          if (isFieldError(e)) {
+            errorsByField[e.field] = e.message;
+          }
         });
         setFieldErrors(errorsByField);
       } else {

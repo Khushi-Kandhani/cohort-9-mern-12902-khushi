@@ -1,6 +1,14 @@
-const asyncHandler = (fn: Function) => {
-  return (req: any, res: any, next: any) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+import { Request, Response, NextFunction } from "express";
+
+export interface AuthenticatedRequest extends Request {
+  user: { id: string };
+}
+
+const asyncHandler = <T extends Request>(
+  fn: (req: T, res: Response, next: NextFunction) => Promise<void>
+) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req as T, res, next)).catch(next);
   };
 };
 

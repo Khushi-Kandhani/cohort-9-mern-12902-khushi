@@ -3,6 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, Eye, EyeOff, Loader2, StickyNote } from "lucide-react";
 
+function isErrorWithResponse(
+  error: unknown
+): error is { response?: { data?: { message?: string } } } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -21,9 +27,10 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate("/dashboard", { replace: true });
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Something went wrong. Please try again.";
+    } catch (err: unknown) {
+      const message = isErrorWithResponse(err)
+        ? err.response?.data?.message || "Something went wrong. Please try again."
+        : "Something went wrong. Please try again.";
       setError(message);
     } finally {
       setIsSubmitting(false);
