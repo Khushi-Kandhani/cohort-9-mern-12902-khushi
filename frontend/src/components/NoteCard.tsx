@@ -14,8 +14,7 @@ interface Note {
   category?: string;
   updatedAt?: string;
   createdAt?: string;
-  _id?: string;
-  id?: string;
+  _id: string;
 }
 
 export default function NoteCard({ note, onEdit, onDelete, className }: { note: Note; onEdit: (note: Note) => void; onDelete: (note: Note) => void; className?: string }) {

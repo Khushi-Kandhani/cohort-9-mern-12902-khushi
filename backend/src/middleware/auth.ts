@@ -2,13 +2,11 @@ import jwt from "jsonwebtoken";
 import User from "../models/User";
 import logger from "./logger";
 import { Request, Response, NextFunction } from "express";
-
-interface AuthenticatedRequest extends Request {
-  user: { id: string };
-}
+import { AuthenticatedRequest } from "../utils/asyncHandler";
+export { AuthenticatedRequest };
 
 async function authMiddleware(
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> {
@@ -23,7 +21,7 @@ async function authMiddleware(
 
   let decoded: jwt.JwtPayload;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+    decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
   } catch (err) {
     logger.warn({ err: (err as Error).message }, "JWT verification failed");
     res.set("WWW-Authenticate", "Bearer");
@@ -39,7 +37,7 @@ async function authMiddleware(
       return;
     }
 
-    (req as AuthenticatedRequest).user = { id: decoded.id };
+    req.user = { id: decoded.id };
     next();
   } catch (err) {
     next(err);

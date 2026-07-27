@@ -31,7 +31,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }: {
     if (isOpen) {
       const focusTimer = setTimeout(() => cancelButtonRef.current?.focus(), 0);
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') onClose();
+        if (e.key === 'Escape' && !isDeleting) onClose();
       };
       document.addEventListener('keydown', handleKeyDown);
       return () => {
@@ -39,7 +39,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }: {
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isDeleting]);
 
   if (!localOpen) return null;
 
@@ -60,7 +60,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }: {
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       style={{ backgroundColor: 'rgba(2, 6, 23, 0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-      onClick={onClose}
+      onClick={isDeleting ? undefined : onClose}
     >
       <div
         role="alertdialog"
@@ -89,7 +89,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, noteTitle }: {
           <button
             type="button"
             ref={cancelButtonRef}
-            onClick={onClose}
+            onClick={isDeleting ? undefined : onClose}
             disabled={isDeleting}
             className="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >

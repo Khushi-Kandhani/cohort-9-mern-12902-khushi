@@ -1,5 +1,6 @@
 import Note from "../models/Note";
-import asyncHandler, { AuthenticatedRequest } from "../utils/asyncHandler";
+import asyncHandler from "../utils/asyncHandler";
+import { AuthenticatedRequest } from "../middleware/auth";
 import { AppError } from "../middleware/errorHandler";
 import logger from "../middleware/logger";
 import { Response } from "express";

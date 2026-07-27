@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
+import { AppError } from "../middleware/errorHandler";
 
 interface IUser extends Document {
   name: string;
@@ -40,14 +41,22 @@ const userSchema = new Schema<IUser>(
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  } catch (err) {
+    throw new AppError("Password hashing failed", 500);
+  }
 });
 
 userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
-  return await bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (err) {
+    throw new AppError("Password comparison failed", 500);
+  }
 };
 
 const User = mongoose.model<IUser>("User", userSchema);

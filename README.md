@@ -32,33 +32,22 @@ A full-stack MERN notes application built as a Cohort 9 assignment. Users can re
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Node.js 20.19+ (for local development without Docker)
+- Node.js ^20.19.0 || >=22.12.0 (for local development without Docker)
 
 ## Getting Started (Docker-based)
 
 1. Clone the repository.
 2. Ensure Docker and Docker Compose are running.
-<<<<<<< HEAD
-3. Copy the environment template and fill in the required values:
+3. Copy the environment templates and fill in the required values:
    ```bash
    cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env
    ```
+   The frontend `VITE_API_URL` (used by `frontend/src/api/axiosClient.ts`) defaults to `http://localhost:5000/api` — update it if your backend runs on a different host or port.
 4. Start the stack:
    ```bash
    docker-compose up --build
    ```
-=======
-3. Copy the environment templates and fill in the required values:
-    ```bash
-    cp backend/.env.example backend/.env
-    cp frontend/.env.example frontend/.env
-    ```
-    The frontend `VITE_API_URL` (used by `frontend/src/api/axiosClient.js`) defaults to `http://localhost:5000/api` — update it if your backend runs on a different host or port.
-4. Start the stack:
-    ```bash
-    docker-compose up --build
-    ```
->>>>>>> 371fed9 (fix: resolve auth middleware, dashboard updates, and README syntax)
 5. Access the frontend at http://localhost:5173 and the backend API at http://localhost:5000/api.
 
 ## Environment Variables

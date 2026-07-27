@@ -15,8 +15,7 @@ interface Note {
   category?: string;
   updatedAt?: string;
   createdAt?: string;
-  _id?: string;
-  id?: string;
+  _id: string;
 }
 
 export default function DashboardPage() {
@@ -84,7 +83,11 @@ export default function DashboardPage() {
   const handleSaveNote = async (formData: NoteFormData) => {
     try {
       if (selectedNote) {
-        await updateNoteApi(selectedNote._id || selectedNote.id || '', formData as Record<string, unknown>);
+        if (!selectedNote._id) {
+          toast.error('Note ID is missing');
+          return;
+        }
+        await updateNoteApi(selectedNote._id, formData as Record<string, unknown>);
         toast.success('Note updated');
       } else {
         await createNoteApi(formData as Record<string, unknown>);
@@ -101,7 +104,11 @@ export default function DashboardPage() {
   const handleDeleteNote = async () => {
     if (!selectedNote) return;
     try {
-      await deleteNoteApi(selectedNote._id || selectedNote.id || '');
+      if (!selectedNote._id) {
+        toast.error('Note ID is missing');
+        return;
+      }
+      await deleteNoteApi(selectedNote._id);
       toast.success('Note deleted');
       setIsDeleteModalOpen(false);
       await loadNotes();
@@ -206,7 +213,7 @@ export default function DashboardPage() {
           >
             {filteredNotes.map((note) => (
               <NoteCard
-                key={note._id || note.id}
+                key={note._id}
                 note={note}
                 onEdit={handleOpenEditModal}
                 onDelete={handleOpenDeleteModal}
