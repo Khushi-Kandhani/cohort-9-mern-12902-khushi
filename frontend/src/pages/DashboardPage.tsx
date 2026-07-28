@@ -87,10 +87,10 @@ export default function DashboardPage() {
           toast.error('Note ID is missing');
           return;
         }
-        await updateNoteApi(selectedNote._id, formData as Record<string, unknown>);
+        await updateNoteApi(selectedNote._id, formData);
         toast.success('Note updated');
       } else {
-        await createNoteApi(formData as Record<string, unknown>);
+        await createNoteApi(formData);
         toast.success('Note created');
       }
       setIsNoteModalOpen(false);

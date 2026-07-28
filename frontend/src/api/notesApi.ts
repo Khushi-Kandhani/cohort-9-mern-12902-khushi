@@ -1,5 +1,5 @@
-import axios from "axios";
 import axiosClient from "./axiosClient";
+import type { NoteFormData } from "../components/NoteModal";
 
 const isAxiosError = (error: unknown): boolean =>
   typeof error === "object" && error !== null && "isAxiosError" in error;
@@ -31,12 +31,12 @@ export const fetchNotesApi = async () => {
 };
 
 // Create a new note
-export const createNoteApi = async (noteData: Record<string, unknown>) => {
+export const createNoteApi = async (noteData: NoteFormData) => {
   return request(() => axiosClient.post("/notes", noteData));
 };
 
 // Update an existing note
-export const updateNoteApi = async (id: string, noteData: Record<string, unknown>) => {
+export const updateNoteApi = async (id: string, noteData: Partial<NoteFormData>) => {
   return request(() => axiosClient.put(`/notes/${id}`, noteData));
 };
 

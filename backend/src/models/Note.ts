@@ -4,6 +4,7 @@ interface INote extends Document {
   user: mongoose.Types.ObjectId;
   title: string;
   content: string;
+  category: string;
   tags: string[];
 }
 

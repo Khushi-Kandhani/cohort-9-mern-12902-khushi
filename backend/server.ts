@@ -1,7 +1,7 @@
 import "dotenv/config";
-import app from "./src/app";
-import connectDB from "./src/config/db";
 import validateEnv from "./src/config/validateEnv";
+import connectDB from "./src/config/db";
+import app from "./src/app";
 
 validateEnv();
 

@@ -6,12 +6,13 @@ import logger from "../middleware/logger";
 import { Response } from "express";
 
 const createNote = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { title, content, tags } = req.body;
+  const { title, content, category, tags } = req.body;
 
   const note = await Note.create({
     user: req.user.id,
     title,
     content,
+    category: category || "",
     tags: tags || [],
   });
 
@@ -36,11 +37,11 @@ const getNoteById = asyncHandler(async (req: AuthenticatedRequest, res: Response
 });
 
 const updateNote = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const { title, content, tags } = req.body;
+  const { title, content, category, tags } = req.body;
 
   const note = await Note.findOneAndUpdate(
     { _id: req.params.id, user: req.user.id },
-    { title, content, tags },
+    { title, content, category, tags },
     { new: true, runValidators: true }
   );
 
