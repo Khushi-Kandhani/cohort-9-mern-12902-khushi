@@ -1,16 +1,30 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Bold, Italic, List, ListOrdered } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, type LucideIcon } from 'lucide-react';
+
+type ToolbarAction = 'toggleBold' | 'toggleItalic' | 'toggleBulletList' | 'toggleOrderedList';
+
+interface ToolbarButton {
+  action: ToolbarAction;
+  check: string;
+  icon: LucideIcon;
+  label: string;
+}
 
 // toolbar buttons - kept it minimal, only what the assignment actually needs
-const TOOLBAR_BUTTONS = [
+const TOOLBAR_BUTTONS: ToolbarButton[] = [
   { action: 'toggleBold', check: 'bold', icon: Bold, label: 'Bold' },
   { action: 'toggleItalic', check: 'italic', icon: Italic, label: 'Italic' },
   { action: 'toggleBulletList', check: 'bulletList', icon: List, label: 'Bullet list' },
   { action: 'toggleOrderedList', check: 'orderedList', icon: ListOrdered, label: 'Numbered list' },
 ];
 
-export default function RichTextEditor({ content, onChange }) {
+interface RichTextEditorProps {
+  content: string;
+  onChange: (html: string) => void;
+}
+
+export default function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [StarterKit],
     content: content || '',
@@ -30,8 +44,8 @@ export default function RichTextEditor({ content, onChange }) {
     return null;
   }
 
-  const runToolbarAction = (actionName) => {
-    editor.chain().focus()[actionName]().run();
+  const runToolbarAction = (actionName: ToolbarAction) => {
+    (editor.chain().focus() as any)[actionName]().run();
   };
 
   return (
@@ -58,7 +72,6 @@ export default function RichTextEditor({ content, onChange }) {
           );
         })}
       </div>
-
       <EditorContent editor={editor} />
     </div>
   );
