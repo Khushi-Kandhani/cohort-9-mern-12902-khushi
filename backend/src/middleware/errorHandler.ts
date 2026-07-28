@@ -25,7 +25,11 @@ const errorHandler = (err: AppError | Error, req: Request, res: Response, next: 
 };
 
 const notFound = (req: Request, res: Response, next: NextFunction) => {
-  const error = new AppError(`Route not found: ${req.originalUrl}`, 404);
+  // Don't reflect req.originalUrl (may include query strings/user input) back
+  // to the client — log it server-side for debugging, but keep the
+  // client-facing message generic.
+  logger.warn({ path: req.originalUrl, method: req.method }, "Route not found");
+  const error = new AppError("Route not found", 404);
   next(error);
 };
 
