@@ -1,9 +1,15 @@
 const { body, param } = require("express-validator");
-
 // Tiptap sends "<p></p>" for an empty editor, which passes notEmpty() as a string
-// but is actually blank content - strip tags before checking
+// but is actually blank content - strip tags AND common whitespace entities
+// (e.g. "&nbsp;", which Tiptap sometimes inserts) before checking.
 function hasRealContent(value) {
-  const stripped = value.replace(/<[^>]*>/g, "").trim();
+  if (typeof value !== "string") return false;
+  const stripped = value
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#160;/g, " ")
+    .replace(/&#xa0;/gi, " ")
+    .trim();
   return stripped.length > 0;
 }
 
