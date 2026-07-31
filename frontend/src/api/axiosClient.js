@@ -12,12 +12,16 @@ const axiosClient = axios.create({
   },
 });
 
-// Attach the JWT to every outgoing request, if one exists
+// Attach the JWT to every outgoing request, if one exists. We also stash the
+// token on the request config itself so the response interceptor can later
+// tell whether THIS specific request's token is still the active session's
+// token (see comment below on why that matters).
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config._authToken = token || null;
   return config;
 });
 
@@ -25,6 +29,12 @@ axiosClient.interceptors.request.use((config) => {
 // Dispatches a custom event instead of a hard redirect, so the SPA can navigate
 // gracefully (via React Router) rather than forcing a full page reload that would
 // wipe any in-memory unsaved state.
+//
+// Race condition guard: a request sent with an old token (A) can resolve with a
+// 401 AFTER the user has already logged out and back in with a new token (B).
+// Without checking this, that stale 401 would incorrectly clear the brand new
+// session (B). We only treat this as "session expired" if the token this
+// specific request was sent with is still the token currently active.
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,9 +44,16 @@ axiosClient.interceptors.response.use(
     );
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.dispatchEvent(new CustomEvent("auth:session-expired"));
+      const tokenUsedByRequest = error.config?._authToken || null;
+      const currentToken = localStorage.getItem("token");
+
+      if (tokenUsedByRequest === currentToken) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
+      }
+      // else: this 401 belongs to a stale/older session that's already been
+      // replaced — ignore it, the current session is still valid.
     }
 
     return Promise.reject(error);
