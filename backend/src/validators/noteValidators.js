@@ -45,8 +45,14 @@ const updateNoteValidator = [
     .optional()
     .isArray().withMessage("Tags must be an array"),
   body().custom((value) => {
-    if (!value.title && !value.content && !value.tags) {
-      throw new Error("At least one field (title, content, or tags) must be provided");
+    const editableFields = ["title", "content", "category", "tags"];
+    const hasAtLeastOneField = editableFields.some((field) =>
+      Object.prototype.hasOwnProperty.call(value, field)
+    );
+    if (!hasAtLeastOneField) {
+      throw new Error(
+        "At least one field (title, content, category, or tags) must be provided"
+      );
     }
     return true;
   }),
