@@ -125,11 +125,11 @@ cohort-9-mern-12902-khushi/
 │   │   ├── components/    # Reusable UI components
 │   │   ├── context/       # React context providers
 │   │   ├── api/           # API client and endpoint functions
-│   │   └── pages/         # Page-level components
+│   │   ├── pages/         # Page-level components
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
 │   ├── public/            # Static public files
-│   ├── App.jsx
-│   ├── main.jsx
-│   ├── index.css
 │   ├── package.json
 │   ├── Dockerfile
 │   ├── vite.config.js
@@ -142,7 +142,7 @@ cohort-9-mern-12902-khushi/
 ## Known Limitations
 
 - No frontend test suite yet.
-- Local development only — no deployment configuration is in place.
+- No production deployment configuration — Docker Compose setup here is intended for local development only.
 - The Docker setup is intended for local development and has not been tested for production use.
 
 ## Author
