@@ -24,6 +24,7 @@ const noteSchema = new Schema<INote>(
     content: {
       type: String,
       required: [true, "Note content is required"],
+      maxlength: [50000, "Content cannot exceed 50,000 characters"],
     },
     category: {
       type: String,
