@@ -32,18 +32,18 @@ A full-stack MERN notes application built as a Cohort 9 assignment. Users can re
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Node.js 18+ (for local development without Docker)
+- Node.js 20.19+ (for local development without Docker)
 
 ## Getting Started (Docker-based)
 
 1. Clone the repository.
 2. Ensure Docker and Docker Compose are running.
 3. Copy the environment template and fill in the required values:
-   ```
+   ```bash
    cp backend/.env.example backend/.env
    ```
 4. Start the stack:
-   ```
+   ```bash
    docker-compose up --build
    ```
 5. Access the frontend at http://localhost:5173 and the backend API at http://localhost:5000/api.
@@ -57,9 +57,10 @@ A full-stack MERN notes application built as a Cohort 9 assignment. Users can re
 | `PORT` | Port the backend server listens on | `5000` |
 | `NODE_ENV` | Node environment | `development` |
 | `MONGO_URI` | MongoDB connection string | `mongodb://mongo-db:27017/notes_app` |
-| `JWT_SECRET` | Secret key for signing JWTs | — |
-| `JWT_EXPIRES_IN` | JWT expiration time | — |
+| `JWT_SECRET` | Secret key for signing JWTs (must be strong and unique) | — |
+| `JWT_EXPIRES_IN` | JWT expiration time | `7d` |
 | `LOG_LEVEL` | Logging level | `info` |
+| `LOG_HMAC_KEY` | Key used to hash emails in failed-login logs (must be strong and unique) | — |
 
 ### Frontend (`frontend/.env`)
 
@@ -93,14 +94,14 @@ All endpoints are prefixed with `/api`.
 
 Backend tests use Mocha and Chai. Run them from the `backend/` directory:
 
-```
+```bash
 cd backend
 npm test
 ```
 
 ## Project Structure
 
-```
+```text
 cohort-9-mern-12902-khushi/
 ├── backend/
 │   ├── src/

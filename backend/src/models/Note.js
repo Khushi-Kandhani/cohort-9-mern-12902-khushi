@@ -17,6 +17,12 @@ const noteSchema = new mongoose.Schema(
       type: String,
       required: [true, "Note content is required"],
     },
+    category: {
+      type: String,
+      trim: true,
+      maxlength: [40, "Category cannot exceed 40 characters"],
+      default: "",
+    },
     tags: [
       {
         type: String,

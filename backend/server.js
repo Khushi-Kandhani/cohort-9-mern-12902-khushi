@@ -1,9 +1,4 @@
 require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./src/config/db");
-const httpLogger = require("./src/middleware/httpLogger");
-const { errorHandler, notFound } = require("./src/middleware/errorHandler");
 
 // Refuse to boot if required secrets are missing or still set to the
 // template's placeholder values. Fail fast at startup instead of only
@@ -27,28 +22,10 @@ for (const [key, placeholder] of Object.entries(REQUIRED_SECRETS)) {
   }
 }
 
-const app = express();
-
-// Core middleware
-app.use(cors());
-app.use(express.json());
-app.use(httpLogger);
-
-// Health check
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
-});
-
-// Routes will be mounted here as we build them
-app.use("/api/auth", require("./src/routes/authRoutes"));
-app.use("/api/notes", require("./src/routes/noteRoutes"));
-
-// 404 + error handling — must be last
-app.use(notFound);
-app.use(errorHandler);
+const app = require("./src/app");
+const connectDB = require("./src/config/db");
 
 const PORT = process.env.PORT || 5000;
-
 // Only start accepting requests once MongoDB is actually connected
 connectDB()
   .then(() => {

@@ -1,9 +1,15 @@
 const { body, param } = require("express-validator");
-
 // Tiptap sends "<p></p>" for an empty editor, which passes notEmpty() as a string
-// but is actually blank content - strip tags before checking
+// but is actually blank content - strip tags AND common whitespace entities
+// (e.g. "&nbsp;", which Tiptap sometimes inserts) before checking.
 function hasRealContent(value) {
-  const stripped = value.replace(/<[^>]*>/g, "").trim();
+  if (typeof value !== "string") return false;
+  const stripped = value
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#160;/g, " ")
+    .replace(/&#xa0;/gi, " ")
+    .trim();
   return stripped.length > 0;
 }
 
@@ -39,8 +45,14 @@ const updateNoteValidator = [
     .optional()
     .isArray().withMessage("Tags must be an array"),
   body().custom((value) => {
-    if (!value.title && !value.content && !value.tags) {
-      throw new Error("At least one field (title, content, or tags) must be provided");
+    const editableFields = ["title", "content", "category", "tags"];
+    const hasAtLeastOneField = editableFields.some((field) =>
+      Object.prototype.hasOwnProperty.call(value, field)
+    );
+    if (!hasAtLeastOneField) {
+      throw new Error(
+        "At least one field (title, content, category, or tags) must be provided"
+      );
     }
     return true;
   }),

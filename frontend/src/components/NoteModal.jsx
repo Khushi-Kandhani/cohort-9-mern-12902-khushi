@@ -150,7 +150,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }) {
             <label htmlFor="note-content" className="text-xs font-bold uppercase tracking-widest text-slate-100">
               Content
             </label>
-            <RichTextEditor content={formData.content} onChange={handleContentChange} />
+            <RichTextEditor key={initialData?._id || initialData?.id || 'new'} content={formData.content} onChange={handleContentChange} />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-700/80">
