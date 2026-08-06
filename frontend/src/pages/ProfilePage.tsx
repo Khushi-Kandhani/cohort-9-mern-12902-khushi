@@ -1,9 +1,10 @@
+import type { ReactElement } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, LogOut, ArrowLeft, Shield } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
-export default function ProfilePage() {
+export default function ProfilePage(): ReactElement {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
