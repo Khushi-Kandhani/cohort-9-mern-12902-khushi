@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import NoteCard from '../components/NoteCard';
@@ -6,16 +6,24 @@ import NoteModal from '../components/NoteModal';
 import type { NoteFormData } from '../components/NoteModal';
 import DeleteModal from '../components/DeleteModal';
 import { fetchNotesApi, createNoteApi, updateNoteApi, deleteNoteApi } from '../api/notesApi';
-import { Plus, Search, Notebook, Loader2, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, Notebook, Loader2, LayoutGrid, List, Download, Upload } from 'lucide-react';
 
 interface Note {
   title?: string;
   content?: string;
   description?: string;
   category?: string;
+  tags?: string[];
   updatedAt?: string;
   createdAt?: string;
   _id: string;
+}
+
+interface ImportedNote {
+  title?: string;
+  content?: string;
+  category?: string;
+  tags?: unknown;
 }
 
 export default function DashboardPage() {
@@ -24,10 +32,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadNotes = async () => {
     try {
@@ -117,6 +128,88 @@ export default function DashboardPage() {
     }
   };
 
+  const handleExportNotes = () => {
+    if (notes.length === 0) {
+      toast.error('No notes to export');
+      return;
+    }
+
+    const exportData = notes.map(({ title, content, category, tags }) => ({
+      title,
+      content,
+      category: category || '',
+      tags: tags || [],
+    }));
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `notes-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Exported ${exportData.length} note${exportData.length === 1 ? '' : 's'}`);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const parsed: unknown = JSON.parse(text);
+
+      if (!Array.isArray(parsed)) {
+        throw new Error('File must contain a JSON array of notes');
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const item of parsed as ImportedNote[]) {
+        if (!item.title || !item.content) {
+          failCount++;
+          continue;
+        }
+        try {
+          await createNoteApi({
+            title: item.title,
+            content: item.content,
+            category: item.category || '',
+          });
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+
+      await loadNotes();
+
+      if (successCount > 0) {
+        toast.success(`Imported ${successCount} note${successCount === 1 ? '' : 's'}`);
+      }
+      if (failCount > 0) {
+        toast.error(`${failCount} note${failCount === 1 ? '' : 's'} failed to import`);
+      }
+    } catch (err) {
+      console.error('Import failed:', err);
+      toast.error('Invalid file - could not import notes');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       <Navbar />
@@ -135,7 +228,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <div
               className="flex items-center gap-1 p-1 bg-slate-900 rounded-lg border border-slate-800"
               role="group"
@@ -166,6 +259,37 @@ export default function DashboardPage() {
                 <List className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
+
+            <button
+              onClick={handleExportNotes}
+              className="p-2.5 rounded-xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/40 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              title="Export notes as JSON"
+              aria-label="Export notes"
+            >
+              <Download className="w-4 h-4" aria-hidden="true" />
+            </button>
+
+            <button
+              onClick={handleImportClick}
+              disabled={isImporting}
+              className="p-2.5 rounded-xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/40 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50"
+              title="Import notes from JSON"
+              aria-label="Import notes"
+            >
+              {isImporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Upload className="w-4 h-4" aria-hidden="true" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              onChange={handleImportFile}
+              className="hidden"
+              aria-hidden="true"
+            />
 
             <button
               onClick={handleOpenCreateModal}
