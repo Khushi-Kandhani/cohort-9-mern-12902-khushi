@@ -8,7 +8,7 @@ export interface NoteFormData {
   category: string;
 }
 
-export type NoteModalInitialData = Partial<NoteFormData> & { description?: string } | null;
+export type NoteModalInitialData = Partial<NoteFormData> & { _id?: string; id?: string; description?: string } | null;
 
 export default function NoteModal({ isOpen, onClose, onSave, initialData }: { isOpen: boolean; onClose: () => void; onSave: (data: NoteFormData) => Promise<void>; initialData: NoteModalInitialData }) {
   const [formData, setFormData] = useState<NoteFormData>({ title: '', content: '', category: '' });

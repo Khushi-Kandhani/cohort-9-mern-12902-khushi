@@ -1,8 +1,9 @@
+import type { ReactElement } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { NotebookPen, LogOut, User } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar(): ReactElement {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
