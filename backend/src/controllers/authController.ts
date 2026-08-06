@@ -30,7 +30,7 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
   } catch (err) {
     // findOne above is just a pre-check, not atomic - a concurrent signup
     // for the same email can still slip past it and hit the unique index.
-    if (err.code === 11000) {
+    if (err && typeof err === "object" && "code" in err && (err as { code: unknown }).code === 11000) {
       throw new AppError("Email already in use", 409);
     }
     throw err;

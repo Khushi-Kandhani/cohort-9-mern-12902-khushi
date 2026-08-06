@@ -5,20 +5,17 @@ import toast from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
+import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const navigate = useNavigate();
 
-  // axiosClient dispatches this on a 401 from a non-auth endpoint (expired/invalid
-  // token). We handle it here instead of a hard window.location redirect so the
-  // SPA navigates gracefully without wiping in-memory state elsewhere.
   useEffect(() => {
     const handleSessionExpired = () => {
       toast.error("Your session has expired. Please log in again.");
       navigate("/login", { replace: true });
     };
-
     window.addEventListener("auth:session-expired", handleSessionExpired);
     return () => {
       window.removeEventListener("auth:session-expired", handleSessionExpired);
@@ -36,6 +33,14 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

@@ -1,8 +1,10 @@
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { NotebookPen, LogOut, User } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header
@@ -10,7 +12,10 @@ export default function Navbar() {
       aria-label="App header"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => navigate('/dashboard')}
+        >
           <div
             className="p-2 bg-indigo-600 rounded-lg shadow-md shadow-indigo-600/20 ring-1 ring-indigo-500/50 transition-transform duration-200 hover:scale-105 active:scale-95"
             aria-hidden="true"
@@ -21,13 +26,15 @@ export default function Navbar() {
             NotesApp
           </span>
         </div>
-
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-xs font-medium text-slate-200 transition-colors hover:border-indigo-500/40">
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-xs font-medium text-slate-200 transition-colors hover:border-indigo-500/40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="View profile"
+          >
             <User className="w-3.5 h-3.5 text-indigo-400" aria-hidden="true" />
             <span>{user?.name || 'User'}</span>
-          </div>
-
+          </button>
           <button
             onClick={logout}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 bg-transparent hover:bg-red-950/60 border border-slate-700 hover:border-red-500/40 rounded-lg transition cursor-pointer"
