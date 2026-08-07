@@ -1,5 +1,13 @@
 import axios from "axios";
 
+// Extend Axios's request config type so TypeScript knows about our custom
+// _authToken field instead of treating it as an error.
+declare module "axios" {
+  export interface InternalAxiosRequestConfig {
+    _authToken?: string | null;
+  }
+}
+
 // Auth endpoints where a 401 means "wrong credentials" or "already logged out" —
 // not "session expired" — so they should NOT trigger a global logout/redirect.
 const AUTH_ENDPOINTS = ["/auth/login", "/auth/signup", "/auth/logout"];
@@ -42,11 +50,9 @@ axiosClient.interceptors.response.use(
     const isAuthEndpoint = AUTH_ENDPOINTS.some((path) =>
       requestUrl.includes(path)
     );
-
     if (error.response?.status === 401 && !isAuthEndpoint) {
       const tokenUsedByRequest = error.config?._authToken || null;
       const currentToken = localStorage.getItem("token");
-
       if (tokenUsedByRequest === currentToken) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -55,7 +61,6 @@ axiosClient.interceptors.response.use(
       // else: this 401 belongs to a stale/older session that's already been
       // replaced — ignore it, the current session is still valid.
     }
-
     return Promise.reject(error);
   }
 );
