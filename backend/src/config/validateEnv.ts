@@ -8,7 +8,7 @@ const PLACEHOLDER_VALUES: Record<string, string> = {
   LOG_HMAC_KEY: "your_log_hmac_key_here",
 };
 
-const validateEnv = () => {
+const validateEnv = (): void => {
   const required = ["JWT_SECRET", "LOG_HMAC_KEY", "MONGO_URI"] as const;
   const missing = required.filter((key) => !process.env[key]?.trim());
 
