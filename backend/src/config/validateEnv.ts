@@ -1,8 +1,8 @@
 import logger from "../middleware/logger";
 
-// Refuse to boot if required secrets are missing or still set to the
-// template's placeholder values. Fail fast at startup instead of only
-// crashing the first time someone hits an auth-related route.
+// Refuse to boot if required secrets are missing, whitespace-only, or still
+// set to the template's placeholder values. Fail fast at startup instead of
+// only crashing the first time someone hits an auth-related route.
 const PLACEHOLDER_VALUES: Record<string, string> = {
   JWT_SECRET: "your_jwt_secret_here",
   LOG_HMAC_KEY: "your_log_hmac_key_here",
@@ -10,7 +10,7 @@ const PLACEHOLDER_VALUES: Record<string, string> = {
 
 const validateEnv = () => {
   const required = ["JWT_SECRET", "LOG_HMAC_KEY", "MONGO_URI"] as const;
-  const missing = required.filter((key) => !process.env[key]);
+  const missing = required.filter((key) => !process.env[key]?.trim());
 
   if (missing.length > 0) {
     logger.error({ missing }, "Missing required environment variables");
@@ -18,7 +18,9 @@ const validateEnv = () => {
   }
 
   const placeholders = required.filter(
-    (key) => PLACEHOLDER_VALUES[key] && process.env[key] === PLACEHOLDER_VALUES[key]
+    (key) =>
+      PLACEHOLDER_VALUES[key] &&
+      process.env[key]?.trim() === PLACEHOLDER_VALUES[key]
   );
 
   if (placeholders.length > 0) {
