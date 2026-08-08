@@ -9,7 +9,7 @@ const PLACEHOLDER_VALUES: Record<string, string> = {
 };
 
 const validateEnv = () => {
-  const required = ["JWT_SECRET", "LOG_HMAC_KEY"] as const;
+  const required = ["JWT_SECRET", "LOG_HMAC_KEY", "MONGO_URI"] as const;
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
@@ -18,7 +18,7 @@ const validateEnv = () => {
   }
 
   const placeholders = required.filter(
-    (key) => process.env[key] === PLACEHOLDER_VALUES[key]
+    (key) => PLACEHOLDER_VALUES[key] && process.env[key] === PLACEHOLDER_VALUES[key]
   );
 
   if (placeholders.length > 0) {
