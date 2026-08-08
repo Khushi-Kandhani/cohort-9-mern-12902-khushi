@@ -8,4 +8,12 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export { loginLimiter };
+const signupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === "test" ? 1000 : 10,
+  message: { success: false, message: "Too many signup attempts. Try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export { loginLimiter, signupLimiter };

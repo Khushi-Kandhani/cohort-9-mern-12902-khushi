@@ -20,10 +20,23 @@ interface Note {
 }
 
 interface ImportedNote {
-  title?: string;
-  content?: string;
+  title: string;
+  content: string;
   category?: string;
-  tags?: unknown;
+  tags?: string[];
+}
+
+function isImportedNote(value: unknown): value is ImportedNote {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.title !== 'string' || !candidate.title.trim()) return false;
+  if (typeof candidate.content !== 'string' || !candidate.content.trim()) return false;
+  if (candidate.category !== undefined && typeof candidate.category !== 'string') return false;
+  if (candidate.tags !== undefined) {
+    if (!Array.isArray(candidate.tags)) return false;
+    if (!candidate.tags.every((t) => typeof t === 'string')) return false;
+  }
+  return true;
 }
 
 export default function DashboardPage() {
@@ -174,8 +187,8 @@ export default function DashboardPage() {
       let successCount = 0;
       let failCount = 0;
 
-      for (const item of parsed as ImportedNote[]) {
-        if (!item.title || !item.content) {
+      for (const item of parsed) {
+        if (!isImportedNote(item)) {
           failCount++;
           continue;
         }
@@ -184,6 +197,7 @@ export default function DashboardPage() {
             title: item.title,
             content: item.content,
             category: item.category || '',
+            tags: item.tags || [],
           });
           successCount++;
         } catch {

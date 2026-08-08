@@ -6,6 +6,7 @@ export interface NoteFormData {
   title: string;
   content: string;
   category: string;
+  tags?: string[];
 }
 
 export type NoteModalInitialData = Partial<NoteFormData> & { _id?: string; id?: string; description?: string } | null;

@@ -4,18 +4,28 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-jwt-secret-for-mocha-only";
 process.env.LOG_HMAC_KEY = process.env.LOG_HMAC_KEY || "test-hmac-key-for-mocha-only";
+process.env.MONGO_URI = process.env.MONGO_URI || "mongodb://placeholder:27017/test";
 
-let mongod: MongoMemoryServer;
+let mongod: MongoMemoryServer | undefined;
 
 before(async function () {
   this.timeout(120000);
-  mongod = await MongoMemoryServer.create({
-    instance: {
-      launchTimeout: 60000,
-    },
-  });
-  const uri = mongod.getUri();
-  await mongoose.connect(uri);
+  try {
+    mongod = await MongoMemoryServer.create({
+      instance: {
+        launchTimeout: 60000,
+      },
+    });
+    const uri = mongod.getUri();
+    await mongoose.connect(uri);
+  } catch (err) {
+    // If connect() fails after create() succeeds, make sure the mongod
+    // process doesn't leak - stop it before rethrowing.
+    if (mongod) {
+      await mongod.stop();
+    }
+    throw err;
+  }
 });
 
 afterEach(async function () {
@@ -28,8 +38,11 @@ afterEach(async function () {
 
 after(async function () {
   this.timeout(20000);
-  await mongoose.disconnect();
-  if (mongod) {
-    await mongod.stop();
+  try {
+    await mongoose.disconnect();
+  } finally {
+    if (mongod) {
+      await mongod.stop();
+    }
   }
 });
