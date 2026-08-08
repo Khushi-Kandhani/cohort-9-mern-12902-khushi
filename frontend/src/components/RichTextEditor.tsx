@@ -1,8 +1,21 @@
 import { useEditor, EditorContent } from '@tiptap/react';
+import type { ChainedCommands } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, List, ListOrdered, type LucideIcon } from 'lucide-react';
 
 type ToolbarAction = 'toggleBold' | 'toggleItalic' | 'toggleBulletList' | 'toggleOrderedList';
+
+// Maps each supported toolbar action to the actual chained command call.
+// Using a typed map (instead of `chain[actionName]()`) means TypeScript
+// checks every entry against Tiptap's real command signatures - adding an
+// action here that Tiptap doesn't support is now a compile error, not a
+// silent runtime no-op.
+const TOOLBAR_COMMANDS: Record<ToolbarAction, (chain: ChainedCommands) => ChainedCommands> = {
+  toggleBold: (chain) => chain.toggleBold(),
+  toggleItalic: (chain) => chain.toggleItalic(),
+  toggleBulletList: (chain) => chain.toggleBulletList(),
+  toggleOrderedList: (chain) => chain.toggleOrderedList(),
+};
 
 interface ToolbarButton {
   action: ToolbarAction;
@@ -45,7 +58,7 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
   }
 
   const runToolbarAction = (actionName: ToolbarAction) => {
-    (editor.chain().focus() as any)[actionName]().run();
+    TOOLBAR_COMMANDS[actionName](editor.chain().focus()).run();
   };
 
   return (
