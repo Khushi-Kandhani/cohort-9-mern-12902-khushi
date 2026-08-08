@@ -56,7 +56,7 @@ export default function DashboardPage() {
   const loadNotes = async () => {
     try {
       const res = await fetchNotesApi();
-      const notesData = res.data?.notes || res.data || res || [];
+      const notesData = res.data || [];
       setNotes(Array.isArray(notesData) ? notesData : []);
     } catch (err) {
       console.error('Failed to fetch notes:', err);
