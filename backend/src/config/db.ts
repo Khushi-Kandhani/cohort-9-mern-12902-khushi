@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import logger from "../middleware/logger";
 
-const connectDB = async () => {
+const connectDB = async (): Promise<void> => {
   const uri = process.env.MONGO_URI;
   if (!uri) {
     throw new Error("MONGO_URI is not set");
