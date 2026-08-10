@@ -8,6 +8,10 @@ const httpLogger = pinoHttp({
     if (res.statusCode >= 400) return "warn";
     return "info";
   },
+  redact: {
+    paths: ["req.headers.authorization", "req.headers.cookie"],
+    censor: "[REDACTED]",
+  },
 });
 
 export default httpLogger;

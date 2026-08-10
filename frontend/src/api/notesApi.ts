@@ -1,6 +1,22 @@
 import axiosClient from "./axiosClient";
 import type { NoteFormData } from "../components/NoteModal";
 
+interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  category?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  count?: number;
+}
+
 const isAxiosError = (error: unknown): boolean =>
   typeof error === "object" && error !== null && "isAxiosError" in error;
 
@@ -16,7 +32,7 @@ const normalizeApiError = (error: unknown) => {
   return normalized;
 };
 
-const request = async (requestFn: () => Promise<{ data: any }>): Promise<any> => {
+const request = async <T>(requestFn: () => Promise<{ data: T }>): Promise<T> => {
   try {
     const response = await requestFn();
     return response.data;
@@ -26,21 +42,24 @@ const request = async (requestFn: () => Promise<{ data: any }>): Promise<any> =>
 };
 
 // Fetch all notes for the logged-in user
-export const fetchNotesApi = async () => {
-  return request(() => axiosClient.get("/notes"));
+export const fetchNotesApi = async (): Promise<ApiResponse<Note[]>> => {
+  return request(() => axiosClient.get<ApiResponse<Note[]>>("/notes"));
 };
 
 // Create a new note
-export const createNoteApi = async (noteData: NoteFormData) => {
-  return request(() => axiosClient.post("/notes", noteData));
+export const createNoteApi = async (noteData: NoteFormData): Promise<ApiResponse<Note>> => {
+  return request(() => axiosClient.post<ApiResponse<Note>>("/notes", noteData));
 };
 
 // Update an existing note
-export const updateNoteApi = async (id: string, noteData: Partial<NoteFormData>) => {
-  return request(() => axiosClient.put(`/notes/${id}`, noteData));
+export const updateNoteApi = async (
+  id: string,
+  noteData: Partial<NoteFormData>
+): Promise<ApiResponse<Note>> => {
+  return request(() => axiosClient.put<ApiResponse<Note>>(`/notes/${id}`, noteData));
 };
 
 // Delete a note
-export const deleteNoteApi = async (id: string) => {
-  return request(() => axiosClient.delete(`/notes/${id}`));
+export const deleteNoteApi = async (id: string): Promise<ApiResponse<null>> => {
+  return request(() => axiosClient.delete<ApiResponse<null>>(`/notes/${id}`));
 };

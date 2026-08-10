@@ -7,6 +7,17 @@ interface User {
   email: string;
 }
 
+interface LoginResponse {
+  data: {
+    token: string;
+    user: User;
+  };
+}
+
+interface SignupResponse {
+  data: User;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -49,21 +60,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  async function login(email: string, password: string) {
-    const res = await axiosClient.post("/auth/login", { email, password });
-    const { token, user } = res.data.data;
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
-    return user;
+  async function login(email: string, password: string): Promise<User> {
+    try {
+      const res = await axiosClient.post<LoginResponse>("/auth/login", { email, password });
+      const { token, user } = res.data.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+      return user;
+    } catch (err) {
+      console.error("Login failed:", err);
+      throw err;
+    }
   }
 
-  async function signup(name: string, email: string, password: string) {
-    const res = await axiosClient.post("/auth/signup", { name, email, password });
-    return res.data.data;
+  async function signup(name: string, email: string, password: string): Promise<User> {
+    try {
+      const res = await axiosClient.post<SignupResponse>("/auth/signup", { name, email, password });
+      return res.data.data;
+    } catch (err) {
+      console.error("Signup failed:", err);
+      throw err;
+    }
   }
 
-  async function logout() {
+  async function logout(): Promise<void> {
     try {
       await axiosClient.post("/auth/logout");
     } catch (err) {
@@ -79,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");

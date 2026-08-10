@@ -6,6 +6,7 @@ export interface NoteFormData {
   title: string;
   content: string;
   category: string;
+  tags?: string[];
 }
 
 export type NoteModalInitialData = Partial<NoteFormData> & { _id?: string; id?: string; description?: string } | null;
@@ -122,7 +123,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: { is
               id="note-title"
               ref={titleInputRef}
               type="text"
-              maxLength={120}
+              maxLength={100}
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -131,7 +132,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: { is
               aria-describedby="title-counter"
             />
             <span id="title-counter" className="text-[11px] font-medium text-slate-400">
-              {formData.title.length}/120
+              {formData.title.length}/100
             </span>
           </div>
 

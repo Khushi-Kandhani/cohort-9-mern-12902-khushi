@@ -10,7 +10,7 @@
     "dev": "nodemon --watch src --watch server.ts --exec \"tsc && node dist/server.js\"",
     "build": "tsc",
     "test": "cross-env NODE_ENV=test mocha --require ts-node/register \"test/**/*.test.ts\" --exit --timeout 15000",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json"
   },
   "keywords": [],
   "author": "",
