@@ -6,6 +6,7 @@ import NoteModal from '../components/NoteModal';
 import type { NoteFormData } from '../components/NoteModal';
 import DeleteModal from '../components/DeleteModal';
 import { fetchNotesApi, createNoteApi, updateNoteApi, deleteNoteApi } from '../api/notesApi';
+import { getSocket } from '../socket';
 import { Plus, Search, Notebook, Loader2, LayoutGrid, List, Download, Upload } from 'lucide-react';
 
 interface Note {
@@ -68,6 +69,39 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadNotes();
+  }, []);
+
+  // Live sync: if this same user has another tab/device open, creating,
+  // editing, or deleting a note there updates this tab instantly too,
+  // without needing a manual refresh.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleCreated = (note: Note) => {
+      setNotes((prev) => {
+        if (prev.some((n) => n._id === note._id)) return prev;
+        return [note, ...prev];
+      });
+    };
+
+    const handleUpdated = (note: Note) => {
+      setNotes((prev) => prev.map((n) => (n._id === note._id ? note : n)));
+    };
+
+    const handleDeleted = (payload: { _id: string }) => {
+      setNotes((prev) => prev.filter((n) => n._id !== payload._id));
+    };
+
+    socket.on('note:created', handleCreated);
+    socket.on('note:updated', handleUpdated);
+    socket.on('note:deleted', handleDeleted);
+
+    return () => {
+      socket.off('note:created', handleCreated);
+      socket.off('note:updated', handleUpdated);
+      socket.off('note:deleted', handleDeleted);
+    };
   }, []);
 
   const categories = useMemo(() => {
