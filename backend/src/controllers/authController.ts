@@ -5,6 +5,7 @@ import asyncHandler from "../utils/asyncHandler";
 import { AppError } from "../middleware/errorHandler";
 import logger from "../middleware/logger";
 import { AuthenticatedRequest } from "../middleware/auth";
+import { disconnectUserSockets } from "../socket";
 import { Request, Response } from "express";
 
 function signToken(userId: string, tokenVersion: number) {
@@ -28,8 +29,6 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
   try {
     user = await User.create({ name, email, password });
   } catch (err) {
-    // findOne above is just a pre-check, not atomic - a concurrent signup
-    // for the same email can still slip past it and hit the unique index.
     if (err && typeof err === "object" && "code" in err && (err as { code: unknown }).code === 11000) {
       throw new AppError("Email already in use", 409);
     }
@@ -76,6 +75,7 @@ const login = asyncHandler(async (req: Request, res: Response) => {
 
 const logout = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   await User.findByIdAndUpdate(req.user.id, { $inc: { tokenVersion: 1 } });
+  disconnectUserSockets(req.user.id);
   logger.info({ userId: req.user.id }, "User logged out, tokens revoked");
   res.status(200).json({ success: true, message: "Logged out successfully" });
 });

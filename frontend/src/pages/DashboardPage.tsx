@@ -6,6 +6,7 @@ import NoteModal from '../components/NoteModal';
 import type { NoteFormData } from '../components/NoteModal';
 import DeleteModal from '../components/DeleteModal';
 import { fetchNotesApi, createNoteApi, updateNoteApi, deleteNoteApi } from '../api/notesApi';
+import { getSocket } from '../socket';
 import { Plus, Search, Notebook, Loader2, LayoutGrid, List, Download, Upload } from 'lucide-react';
 
 interface Note {
@@ -39,6 +40,23 @@ function isImportedNote(value: unknown): value is ImportedNote {
   return true;
 }
 
+type QueuedEvent =
+  | { type: 'created'; note: Note }
+  | { type: 'updated'; note: Note }
+  | { type: 'deleted'; id: string };
+
+function applyEventToNotes(notes: Note[], event: QueuedEvent): Note[] {
+  switch (event.type) {
+    case 'created':
+      if (notes.some((n) => n._id === event.note._id)) return notes;
+      return [event.note, ...notes];
+    case 'updated':
+      return notes.map((n) => (n._id === event.note._id ? event.note : n));
+    case 'deleted':
+      return notes.filter((n) => n._id !== event.id);
+  }
+}
+
 export default function DashboardPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,21 +71,69 @@ export default function DashboardPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // While a fetchNotesApi() call is in flight, any socket event that arrives
+  // gets queued here instead of applied directly. Once the fetch resolves and
+  // its snapshot is written to state, the queued events are replayed on top
+  // of that fresh snapshot - so a stale HTTP response can never overwrite a
+  // newer live update.
+  const isFetchingRef = useRef(false);
+  const eventQueueRef = useRef<QueuedEvent[]>([]);
+
   const loadNotes = async () => {
+    isFetchingRef.current = true;
     try {
       const res = await fetchNotesApi();
       const notesData = res.data || [];
-      setNotes(Array.isArray(notesData) ? notesData : []);
+      let next: Note[] = Array.isArray(notesData) ? notesData : [];
+
+      const queued = eventQueueRef.current;
+      eventQueueRef.current = [];
+      for (const event of queued) {
+        next = applyEventToNotes(next, event);
+      }
+
+      setNotes(next);
     } catch (err) {
       console.error('Failed to fetch notes:', err);
       toast.error('Failed to load notes');
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
     loadNotes();
+  }, []);
+
+  // Live sync: if this same user has another tab/device open, creating,
+  // editing, or deleting a note there updates this tab instantly too,
+  // without needing a manual refresh.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const dispatch = (event: QueuedEvent) => {
+      if (isFetchingRef.current) {
+        eventQueueRef.current.push(event);
+        return;
+      }
+      setNotes((prev) => applyEventToNotes(prev, event));
+    };
+
+    const handleCreated = (note: Note) => dispatch({ type: 'created', note });
+    const handleUpdated = (note: Note) => dispatch({ type: 'updated', note });
+    const handleDeleted = (payload: { _id: string }) => dispatch({ type: 'deleted', id: payload._id });
+
+    socket.on('note:created', handleCreated);
+    socket.on('note:updated', handleUpdated);
+    socket.on('note:deleted', handleDeleted);
+
+    return () => {
+      socket.off('note:created', handleCreated);
+      socket.off('note:updated', handleUpdated);
+      socket.off('note:deleted', handleDeleted);
+    };
   }, []);
 
   const categories = useMemo(() => {

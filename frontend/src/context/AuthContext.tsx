@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import axiosClient from "../api/axiosClient";
+import { connectSocket, disconnectSocket } from "../socket";
 
 interface User {
   id: string;
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
+        connectSocket();
       } catch (err) {
         console.error("Corrupted user data in localStorage, clearing session:", err);
         localStorage.removeItem("token");
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleSessionExpired = () => {
       setUser(null);
+      disconnectSocket();
     };
     window.addEventListener("auth:session-expired", handleSessionExpired);
     return () => {
@@ -67,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
+      connectSocket();
       return user;
     } catch (err) {
       console.error("Login failed:", err);
@@ -93,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
+      disconnectSocket();
     }
   }
 
