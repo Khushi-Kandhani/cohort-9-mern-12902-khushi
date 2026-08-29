@@ -23,7 +23,7 @@ A full-stack notes application built for a Cohort 9 assignment. Users can sign u
 ## Features
 
 - User registration, login, and logout with JWT authentication
-- Logout immediately revokes the token server-side, and force-disconnects any live socket connections tied to that session
+- Logout invalidates all active JWTs for the user and force-disconnects every live socket connection for that user, not just the current session
 - Full notes CRUD (create, read, update, delete) with rich text editing (bold, italic, bullet/numbered lists)
 - Notes support categories, with filtering by category on the dashboard
 - Ownership enforcement — users can only ever access their own notes, enforced at the database query level, not just hidden in the UI
@@ -52,8 +52,12 @@ A full-stack notes application built for a Cohort 9 assignment. Users can sign u
 ```
    Generate real values for `JWT_SECRET` and `LOG_HMAC_KEY` rather than leaving the placeholders — the backend will refuse to start otherwise:
 ```bash
-   openssl rand -hex 32
+   JWT_SECRET=$(openssl rand -hex 32)
+   LOG_HMAC_KEY=$(openssl rand -hex 32)
+   echo "JWT_SECRET=$JWT_SECRET"
+   echo "LOG_HMAC_KEY=$LOG_HMAC_KEY"
 ```
+   Copy the printed values into your `.env` file.
    The frontend `VITE_API_URL` (used by `frontend/src/api/axiosClient.ts`) defaults to `http://localhost:5000/api` — update it if your backend runs on a different host or port.
 4. Start the stack:
 ```bash
@@ -92,7 +96,7 @@ All endpoints are prefixed with `/api`.
 |---|---|---|---|
 | POST | `/auth/signup` | Register a new user | No |
 | POST | `/auth/login` | Log in and receive a JWT | No |
-| POST | `/auth/logout` | Invalidate the current JWT and disconnect live sockets | Yes (Bearer) |
+| POST | `/auth/logout` | Invalidate all JWTs for the user and disconnect all their live sockets | Yes (Bearer) |
 
 ### Notes
 
@@ -138,9 +142,10 @@ To run a scan yourself:
 ```bash
 docker run -d --name sonarqube -p 9000:9000 sonarqube:community
 ```
-Then generate a token from the SonarQube UI at `http://localhost:9000` and run:
+Then generate a token from the SonarQube UI at `http://localhost:9000`, export it as an environment variable, and run the scanner:
 ```bash
-sonar-scanner -Dsonar.login=<your-token>
+export SONAR_TOKEN=<your-token>
+sonar-scanner
 ```
 
 ## Project Structure
